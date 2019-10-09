@@ -44,10 +44,20 @@ const ItemCtrl = (function(){
       newItem = new Item(id, name, calories);
 
       data.items.push(newItem);
+      data.items.totalCalories += newItem.calories;
+      // console.log(newItem.calories);
 
       return newItem;
-    //  data.items.totalCalories += calories;
-    }
+
+    },
+    getTotalCalories: function() {
+      let total = 0;
+      data.items.forEach(function(item) {
+        total += item.calories;
+      })
+      data.totalCalories = total;
+      return total;
+    },
   }
 })();
 
@@ -84,6 +94,8 @@ const UICtrl = (function(){
       }
     },
     addListItem: function(item) {
+      //show list
+      document.querySelector(UISelectors.itemList).style.display = 'block';
       //create li element
       const li = document.createElement('li');
       //add class
@@ -98,8 +110,21 @@ const UICtrl = (function(){
       //insert item
       document.querySelector(UISelectors.itemList).insertAdjacentElement('beforeend', li);
     },
+    clearInput: function() {
+      document.querySelector(UISelectors.itemNameInput).value = '';
+      document.querySelector(UISelectors.itemCaloriesInput).value = '';
+
+    },
+    hideList: function() {
+      document.querySelector(UISelectors.itemList).style.display = 'none';
+    },
     getSelectors: function() {
       return UISelectors;
+    },
+    addCalories: function(totalCalories) {
+      console.log("HERE");
+      const calories = document.getElementsByClassName('total-calories');
+      calories[0].innerHTML = totalCalories;
     },
     showAlert: function(msg) {
       alert(msg);
@@ -125,6 +150,13 @@ const App = (function(ItemCtrl, UICtrl){
        const newItem =ItemCtrl.addItem(input.name, input.calories);
        UICtrl.addListItem(newItem);
 
+       //get total calories
+       const totalCalories = ItemCtrl.getTotalCalories();
+       console.log(totalCalories);
+       UICtrl.addCalories(totalCalories);
+       //clear fields
+       UICtrl.clearInput();
+
     }
 
     e.preventDefault();
@@ -135,8 +167,16 @@ const App = (function(ItemCtrl, UICtrl){
     init: function() {
       console.log('Initializing App...');
       const items = ItemCtrl.getItems();
+
+      if(items.length === 0)
+      {
+        UICtrl.hideList();
+      }else{
+        UICtrl.populateItemList(items);
+      }
+
       console.log(items);
-      UICtrl.populateItemList(items);
+
 
       //load event listeners
       loadEventListeners();
